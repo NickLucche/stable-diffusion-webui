@@ -135,17 +135,18 @@ def initialize():
     modules.textual_inversion.textual_inversion.list_textual_inversion_templates()
     startup_timer.record("refresh textual inversion templates")
 
-    try:
-        modules.sd_models.load_model()
-    except Exception as e:
-        errors.display(e, "loading stable diffusion model")
-        print("", file=sys.stderr)
-        print("Stable diffusion model failed to load, exiting", file=sys.stderr)
-        exit(1)
+    # try:
+    #     modules.sd_models.load_model()
+    # except Exception as e:
+    #     errors.display(e, "loading stable diffusion model")
+    #     print("", file=sys.stderr)
+    #     print("Stable diffusion model failed to load, exiting", file=sys.stderr)
+    #     exit(1)
     startup_timer.record("load SD checkpoint")
 
-    shared.opts.data["sd_model_checkpoint"] = shared.sd_model.sd_checkpoint_info.title
+    # shared.opts.data["sd_model_checkpoint"] = shared.sd_model.sd_checkpoint_info.title
 
+    # TODO this will change my model on main process everytime, move to process
     shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights()))
     shared.opts.onchange("sd_vae", wrap_queued_call(lambda: modules.sd_vae.reload_vae_weights()), call=False)
     shared.opts.onchange("sd_vae_as_default", wrap_queued_call(lambda: modules.sd_vae.reload_vae_weights()), call=False)
@@ -181,6 +182,7 @@ def initialize():
     # make the program just exit at ctrl+c without waiting for anything
     def sigint_handler(sig, frame):
         print(f'Interrupted with signal {sig} in {frame}')
+        modules.txt2img.quit_processes()
         os._exit(0)
 
     signal.signal(signal.SIGINT, sigint_handler)
@@ -307,8 +309,8 @@ def webui():
         modules.scripts.reload_scripts()
         startup_timer.record("load scripts")
 
-        modules.script_callbacks.model_loaded_callback(shared.sd_model)
-        startup_timer.record("model loaded callback")
+        # modules.script_callbacks.model_loaded_callback(shared.sd_model)
+        # startup_timer.record("model loaded callback")
 
         modelloader.load_upscalers()
         startup_timer.record("load upscalers")

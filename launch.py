@@ -352,5 +352,7 @@ def start():
 
 
 if __name__ == "__main__":
+    import torch.multiprocessing as mp
     prepare_environment()
+    mp.set_start_method("spawn", force=True)
     start()
